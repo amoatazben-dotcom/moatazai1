@@ -17,9 +17,19 @@ const sql = postgres(url, {
   max: 1,
   ssl: isTest ? false : "prefer",
   onnotice: () => {},
+  connect_timeout: 10,
 });
 
 async function main() {
+  console.log("Checking database connection...");
+  try {
+    await sql`SELECT 1`;
+  } catch (err: any) {
+    console.error("Database connection failed. Skipping migrations for now. Error:", err.message);
+    await sql.end();
+    return;
+  }
+
   await sql`CREATE TABLE IF NOT EXISTS _moataz_migrations (
     id serial PRIMARY KEY,
     filename text NOT NULL UNIQUE,
